@@ -1,0 +1,7 @@
+# scraper intermediates
+scraper/all_plannings.json
+scraper/speakers.json
+
+# editor / OS cruft
+*Zone.Identifier
+.DS_Store
