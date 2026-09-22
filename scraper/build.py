@@ -27,6 +27,7 @@ for n in nodes:
         "type":n["type"],
         "format":n["format"],
         "speakers":sp,
+        "registeredAttendees":((n.get("withEvent") or {}).get("attendeeProfiles") or {}).get("totalCount",0),
     })
 out.sort(key=lambda x:(x["beginsAt"],x["location"] or "",x["title"]))
 json.dump(out,open("dmexco-2026-conference-agenda.json","w"),indent=2,ensure_ascii=False)

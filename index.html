@@ -64,7 +64,8 @@
   }
   .controls input[type="search"] { flex: 1; min-width: 200px; }
   .count { color: var(--muted); font-size: 13px; margin-left: auto; }
-  .sched-summary { font-size: 13px; color: var(--muted); }
+  .sched-summary-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--muted); }
+  .sched-summary-row button { flex-shrink: 0; }
 
   button {
     font: inherit;
@@ -171,6 +172,7 @@
   }
   .tag.loc { background: #efe9ff; }
   .tag.type { background: #eee; color: var(--muted); }
+  .tag.attendees { background: #eaf6ee; color: #1e7a41; }
   .tag.fit { background: var(--ok-bg); color: var(--ok); font-weight: 600; }
   .tag.clash { background: #fdecec; color: #c0392b; font-weight: 600; }
   .score {
@@ -192,6 +194,59 @@
     cursor: pointer;
   }
   .sched-btn.on { background: var(--ok); border-color: var(--ok); color: #fff; }
+  .prio { display: inline-flex; align-items: center; gap: 3px; }
+  .prio-label { font-size: 11px; color: var(--muted); margin-right: 1px; }
+  .prio-btn {
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .prio-btn:hover { border-color: var(--muted); }
+  .prio-btn.on[data-p="1"] { background: #c0392b; border-color: #c0392b; color: #fff; }
+  .prio-btn.on[data-p="2"] { background: #e08a1e; border-color: #e08a1e; color: #fff; }
+  .prio-btn.on[data-p="3"] { background: #6b7a90; border-color: #6b7a90; color: #fff; }
+  .session.prio-1 { border-left: 4px solid #c0392b; }
+  .session.prio-2 { border-left: 4px solid #e08a1e; }
+  .session.prio-3 { border-left: 4px solid #6b7a90; }
+  .meeting-panel {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-top: 10px;
+    font-size: 14px;
+  }
+  .meeting-panel > summary { cursor: pointer; font-weight: 600; }
+  .meeting-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
+  .meeting-form input {
+    font: inherit;
+    padding: 7px 10px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: #fff;
+  }
+  .meeting-form input[type="text"] { flex: 1; min-width: 220px; }
+  .meeting-err { font-size: 13px; color: #c0392b; margin: 6px 0 0; min-height: 18px; }
+  .tag.meeting { background: #fff1d6; color: #9a5b00; font-weight: 600; }
+  .session.meeting {
+    cursor: default;
+    background: #fffaf3;
+    box-shadow: 0 0 0 2px #f6dfa8 inset;
+  }
+  .session.meeting .row {
+    display: grid;
+    grid-template-columns: 118px 1fr;
+    gap: 14px;
+    align-items: baseline;
+  }
   .ai-reason {
     grid-column: 2;
     margin-top: 6px;
@@ -242,8 +297,66 @@
   }
 
   @media (max-width: 560px) {
-    .session summary { grid-template-columns: 1fr; gap: 4px; }
+    .session summary, .session.meeting .row { grid-template-columns: 1fr; gap: 4px; }
     .body, .ai-reason { grid-column: 1; }
+  }
+
+  /* print: only used for "My schedule" — a compact, ink-friendly, A4-ready handout */
+  @media print {
+    @page { size: A4; margin: 16mm 14mm; }
+
+    body { background: #fff; color: #000; font-size: 11pt; }
+    header {
+      position: static;
+      box-shadow: none;
+      border-bottom: 1px solid #000;
+      padding: 0 0 6mm;
+    }
+    header .views, header .controls, .ai-panel, .meeting-panel, .ai-active-bar,
+    #printSchedBtn {
+      display: none !important;
+    }
+    h1 { font-size: 16pt; margin: 0 0 2mm; }
+    h1::after { content: " — My Schedule"; }
+    .sched-summary-row { display: block; font-size: 10pt; }
+
+    main { max-width: none; padding: 0; margin: 0; }
+    .daygroup + .daygroup { page-break-before: always; break-before: page; }
+    .daygroup > h2 { font-size: 13pt; margin: 0 0 4mm; color: #000; }
+
+    .session {
+      border: 1px solid #bbb;
+      box-shadow: none;
+      break-inside: avoid;
+      page-break-inside: avoid;
+      margin-bottom: 2.5mm;
+      padding: 2.5mm 3.5mm;
+    }
+    .session.ai-pick, .session.scheduled { border-color: #bbb; box-shadow: none; }
+    .session.meeting { background: #fdf3df; box-shadow: none; }
+    .session .body,
+    .session .sched-btn, .session .score,
+    .session .tag.fit, .session .tag.clash, .session .ai-reason,
+    .session .del {
+      display: none !important;
+    }
+
+    /* priority: drop the picker chrome, keep only the chosen level as a plain "P1/P2/P3" badge */
+    .session .prio-label,
+    .session .prio-btn:not(.on) {
+      display: none !important;
+    }
+    .session .prio-btn.on {
+      position: static;
+      width: auto;
+      height: auto;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-size: 9pt;
+    }
+    .session .prio-btn.on::before { content: "P"; }
+
+    .gap, .sched-empty { display: none !important; }
   }
 </style>
 </head>
@@ -262,9 +375,35 @@
     <select id="day"><option value="">All days</option></select>
     <select id="loc"><option value="">All stages</option></select>
     <select id="type"><option value="">All types</option></select>
+    <select id="prio">
+      <option value="">Any priority</option>
+      <option value="1">Priority 1</option>
+      <option value="2">Priority 2</option>
+      <option value="3">Priority 3</option>
+      <option value="any">Has a priority</option>
+      <option value="none">No priority</option>
+    </select>
+    <select id="sort">
+      <option value="">Sort: Time</option>
+      <option value="attendees">Sort: Attendee number</option>
+    </select>
     <span class="count" id="count"></span>
   </div>
-  <div class="sched-summary" id="schedSummary" hidden></div>
+  <div class="sched-summary-row" id="schedSummaryRow" hidden>
+    <span id="schedSummary"></span>
+    <button type="button" id="printSchedBtn">🖨 Print my schedule</button>
+  </div>
+  <details class="meeting-panel" id="meetingPanel" hidden>
+    <summary>+ Add a meeting</summary>
+    <form class="meeting-form" id="meetingForm">
+      <input type="date" id="mDate" required aria-label="Date">
+      <input type="time" id="mStart" required aria-label="Start time">
+      <input type="time" id="mEnd" required aria-label="End time">
+      <input type="text" id="mText" required placeholder="Who / what — e.g. Coffee with Anna, Acme booth C12" aria-label="Meeting">
+      <button class="primary" type="submit">Add meeting</button>
+    </form>
+    <p class="meeting-err" id="mErr"></p>
+  </details>
 
   <details class="ai-panel" id="aiPanel">
     <summary>✨ Let AI pick sessions for me</summary>
@@ -313,11 +452,15 @@ const DATA_URL = "dmexco-2026-conference-agenda.json";
 const KEY_STORE = "dmexco-ai-key";
 const WS_STORE = "dmexco-ai-workspace";
 const SCHED_STORE = "dmexco-my-schedule";
+const PRIO_STORE = "dmexco-priorities";
+const MEET_STORE = "dmexco-meetings";
 
 let sessions = [];
 let byId = new Map();
 let aiPicks = null;              // Map<id,{score,reason}>
 let mySchedule = new Set();      // Set<id>
+let meetings = [];               // manual entries; session-shaped, kept out of `sessions`
+let priorities = new Map();      // Map<id, 1|2|3>  (1 = highest)
 let viewMode = "all";            // "all" | "ai" | "schedule"
 let CONF_DAYS = [];
 
@@ -326,11 +469,22 @@ const el = {
   vAi: document.getElementById("vAi"),
   vSched: document.getElementById("vSched"),
   controls: document.getElementById("controls"),
+  schedSummaryRow: document.getElementById("schedSummaryRow"),
   schedSummary: document.getElementById("schedSummary"),
+  printSchedBtn: document.getElementById("printSchedBtn"),
+  meetingPanel: document.getElementById("meetingPanel"),
+  meetingForm: document.getElementById("meetingForm"),
+  mDate: document.getElementById("mDate"),
+  mStart: document.getElementById("mStart"),
+  mEnd: document.getElementById("mEnd"),
+  mText: document.getElementById("mText"),
+  mErr: document.getElementById("mErr"),
   q: document.getElementById("q"),
   day: document.getElementById("day"),
   loc: document.getElementById("loc"),
   type: document.getElementById("type"),
+  prio: document.getElementById("prio"),
+  sort: document.getElementById("sort"),
   count: document.getElementById("count"),
   list: document.getElementById("list"),
   aiPanel: document.getElementById("aiPanel"),
@@ -398,12 +552,88 @@ function conflicts(s) {
 function loadSchedule() {
   try {
     const raw = localStorage.getItem(SCHED_STORE);
-    if (raw) mySchedule = new Set(JSON.parse(raw).filter(id => byId.has(id)));
+    if (raw) JSON.parse(raw).filter(id => byId.has(id)).forEach(id => mySchedule.add(id));
   } catch {}
 }
 function saveSchedule() {
-  try { localStorage.setItem(SCHED_STORE, JSON.stringify([...mySchedule])); } catch {}
+  try { localStorage.setItem(SCHED_STORE, JSON.stringify([...mySchedule].filter(id => !byId.get(id)?.isMeeting))); } catch {}
 }
+/* meetings live in `meetings` + byId + mySchedule, so overlap checks, free slots and the AI context all see them */
+function loadMeetings() {
+  try {
+    const raw = localStorage.getItem(MEET_STORE);
+    if (raw) for (const m of JSON.parse(raw)) registerMeeting(m);
+  } catch {}
+}
+function saveMeetings() {
+  try {
+    localStorage.setItem(MEET_STORE, JSON.stringify(meetings.map(m =>
+      ({ id: m.id, date: m.date, startTime: m.startTime, endTime: m.endTime, title: m.title }))));
+  } catch {}
+}
+function registerMeeting(m) {
+  const o = { id: m.id, date: m.date, startTime: m.startTime, endTime: m.endTime, title: m.title,
+              startMin: toMin(m.startTime), endMin: toMin(m.endTime), isMeeting: true };
+  meetings.push(o);
+  byId.set(o.id, o);
+  mySchedule.add(o.id);
+  return o;
+}
+function dropEntry(x) {
+  mySchedule.delete(x.id);
+  if (x.isMeeting) {
+    meetings = meetings.filter(m => m !== x);
+    byId.delete(x.id);
+    priorities.delete(x.id);
+    saveMeetings();
+    savePriorities();
+  }
+}
+function daySessions(day) {
+  return sessions.filter(s => s.date === day).concat(meetings.filter(m => m.date === day));
+}
+function addMeeting(e) {
+  e.preventDefault();
+  const date = el.mDate.value, startTime = el.mStart.value, endTime = el.mEnd.value;
+  const title = el.mText.value.trim();
+  if (!date || !startTime || !endTime || !title) { el.mErr.textContent = "Fill in date, both times and a description."; return; }
+  if (toMin(endTime) <= toMin(startTime)) { el.mErr.textContent = "End time must be after the start time."; return; }
+  const m = { id: "meeting-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+              date, startTime, endTime, title };
+  const c = conflicts({ id: m.id, date, startMin: toMin(startTime), endMin: toMin(endTime) });
+  if (c.length) {
+    const list = c.map(x => "  • " + x.title + "  (" + x.startTime + "–" + x.endTime + ")").join("\n");
+    if (!confirm("This meeting overlaps what you already have:\n\n" + list + "\n\nReplace " + (c.length > 1 ? "them" : "it") + " with the meeting?")) return;
+    c.forEach(dropEntry);
+  }
+  registerMeeting(m);
+  priorities.set(m.id, 1);          // meetings default to top priority
+  saveMeetings();
+  savePriorities();
+  el.mErr.textContent = "";
+  el.mText.value = "";
+  renderAll();
+}
+
+function loadPriorities() {
+  try {
+    const raw = localStorage.getItem(PRIO_STORE);
+    if (raw) priorities = new Map(Object.entries(JSON.parse(raw))
+      .filter(([id, p]) => byId.has(id) && [1, 2, 3].includes(p)));
+  } catch {}
+}
+function savePriorities() {
+  try { localStorage.setItem(PRIO_STORE, JSON.stringify(Object.fromEntries(priorities))); } catch {}
+}
+/* clicking the active priority clears it */
+function setPriority(s, p) {
+  if (priorities.get(s.id) === p) priorities.delete(s.id);
+  else priorities.set(s.id, p);
+  savePriorities();
+  renderAll();
+}
+function prioOf(s) { return priorities.get(s.id) || 4; }
+
 function toggleSchedule(s) {
   if (mySchedule.has(s.id)) {
     mySchedule.delete(s.id);
@@ -416,7 +646,7 @@ function toggleSchedule(s) {
         "overlaps what you already picked:\n\n" + list + "\n\n" +
         "Replace " + (c.length > 1 ? "them" : "it") + " with this session?");
       if (!ok) return;
-      c.forEach(x => mySchedule.delete(x.id));
+      c.forEach(dropEntry);
     }
     mySchedule.add(s.id);
   }
@@ -426,13 +656,55 @@ function toggleSchedule(s) {
 
 /* ---------- session card ---------- */
 
+function prioButtons(s) {
+  return '<span class="prio" title="Priority — 1 is highest. Click again to clear.">' +
+    '<span class="prio-label">Priority</span>' +
+    [1, 2, 3].map(p =>
+      '<button type="button" class="prio-btn' + (priorities.get(s.id) === p ? " on" : "") +
+      '" data-p="' + p + '" aria-pressed="' + (priorities.get(s.id) === p) + '">' + p + "</button>"
+    ).join("") + "</span>";
+}
+function wirePrio(d, s) {
+  d.querySelectorAll(".prio-btn").forEach(b => b.addEventListener("click", e => {
+    e.preventDefault();
+    e.stopPropagation();
+    setPriority(s, +b.dataset.p);
+  }));
+}
+
+function meetingCard(s) {
+  const d = document.createElement("div");
+  d.className = "session scheduled meeting" + (priorities.has(s.id) ? " prio-" + priorities.get(s.id) : "");
+  d.innerHTML =
+    '<div class="row">' +
+      '<span class="time">' + esc(s.startTime) + "–" + esc(s.endTime) + "</span>" +
+      "<span>" +
+        '<span class="title">' + esc(s.title) + "</span>" +
+        '<span class="meta">' +
+          '<span class="tag meeting">Meeting</span>' +
+          prioButtons(s) +
+          '<button type="button" class="sched-btn del">Delete</button>' +
+        "</span>" +
+      "</span>" +
+    "</div>";
+  wirePrio(d, s);
+  d.querySelector(".del").addEventListener("click", () => {
+    if (!confirm("Delete meeting “" + s.title + "”?")) return;
+    dropEntry(s);
+    renderAll();
+  });
+  return d;
+}
+
 function sessionCard(s, o) {
   o = o || {};
+  if (s.isMeeting) return meetingCard(s);
   const pick = aiPicks && aiPicks.has(s.id) ? aiPicks.get(s.id) : null;
   const on = mySchedule.has(s.id);
   const clash = !on && conflicts(s).length > 0;
   const d = document.createElement("details");
-  d.className = "session" + (pick ? " ai-pick" : "") + (on ? " scheduled" : "");
+  d.className = "session" + (pick ? " ai-pick" : "") + (on ? " scheduled" : "") +
+    (priorities.has(s.id) ? " prio-" + priorities.get(s.id) : "");
 
   const speakers = (s.speakers || []).map(sp =>
     '<li><span class="sname">' + esc(sp.name) + "</span>" +
@@ -451,11 +723,13 @@ function sessionCard(s, o) {
         '<span class="meta">' +
           '<button type="button" class="sched-btn' + (on ? " on" : "") + '">' +
             (on ? "✓ In schedule" : "+ Add to schedule") + "</button>" +
+          prioButtons(s) +
           (pick ? '<span class="score" title="AI fit score">' + pick.score + "</span>" : "") +
           (pick && pick.slot ? '<span class="tag fit" title="fits an open slot">fills ' + esc(pick.slot) + "</span>" : "") +
           (clash ? '<span class="tag clash" title="overlaps something already in your schedule">overlaps a pick</span>' : "") +
           (s.location ? '<span class="tag loc">' + esc(s.location) + "</span>" : "") +
           (s.type ? '<span class="tag type">' + esc(s.type) + "</span>" : "") +
+          (s.registeredAttendees ? '<span class="tag attendees" title="registered attendees">👥 ' + s.registeredAttendees + "</span>" : "") +
         "</span>" +
       "</span>" +
     (pick && pick.reason ? '<p class="ai-reason">' + esc(pick.reason) + "</p>" : "") +
@@ -471,30 +745,45 @@ function sessionCard(s, o) {
     e.stopPropagation();
     toggleSchedule(s);
   });
+  wirePrio(d, s);
   return d;
 }
 
 /* ---------- list views (all / ai) ---------- */
 
+/* the filter bar, shared by all three views; meetings have no stage/type, so those filters exclude them */
+function filtersActive() {
+  return !!(el.q.value.trim() || el.day.value || el.loc.value || el.type.value || el.prio.value);
+}
+function matchesFilters(s) {
+  const fday = el.day.value, floc = el.loc.value, ftype = el.type.value, fprio = el.prio.value;
+  if (fday && s.date !== fday) return false;
+  if (floc && s.location !== floc) return false;
+  if (ftype && s.type !== ftype) return false;
+  if (fprio === "any" ? !priorities.has(s.id)
+      : fprio === "none" ? priorities.has(s.id)
+      : fprio && priorities.get(s.id) !== +fprio) return false;
+  const q = el.q.value.trim().toLowerCase();
+  if (q) {
+    const hay = [s.title, s.description, ...(s.speakers || []).map(sp => sp.name + " " + sp.organization)]
+      .join(" ").toLowerCase();
+    if (!hay.includes(q)) return false;
+  }
+  return true;
+}
+
 function renderList() {
   const useAi = viewMode === "ai" && aiPicks;
-  const q = el.q.value.trim().toLowerCase();
-  const fday = el.day.value, floc = el.loc.value, ftype = el.type.value;
+  const sortByAttendees = !useAi && el.sort.value === "attendees";
 
-  let rows = sessions.filter(s => {
-    if (useAi && !aiPicks.has(s.id)) return false;
-    if (fday && s.date !== fday) return false;
-    if (floc && s.location !== floc) return false;
-    if (ftype && s.type !== ftype) return false;
-    if (q) {
-      const hay = [s.title, s.description, ...(s.speakers || []).map(sp => sp.name + " " + sp.organization)]
-        .join(" ").toLowerCase();
-      if (!hay.includes(q)) return false;
-    }
-    return true;
-  });
+  let rows = sessions.filter(s => (!useAi || aiPicks.has(s.id)) && matchesFilters(s));
 
   if (useAi) rows = rows.slice().sort((a, b) => aiRank(b) - aiRank(a));
+  else if (sortByAttendees) {
+    rows = rows.slice().sort((a, b) =>
+      (b.registeredAttendees || 0) - (a.registeredAttendees || 0) ||
+      a.beginsAt.localeCompare(b.beginsAt));
+  }
 
   el.count.textContent = rows.length + " session" + (rows.length === 1 ? "" : "s");
   el.list.innerHTML = "";
@@ -504,7 +793,7 @@ function renderList() {
     return;
   }
 
-  const grouped = !useAi;
+  const grouped = !useAi && !sortByAttendees;
   let curKey = null, group = null;
   for (const s of rows) {
     if (grouped && s.date !== curKey) {
@@ -535,7 +824,7 @@ function dayWindow(daySess) {
 function freeSlots() {
   const out = [];
   for (const day of CONF_DAYS) {
-    const daySess = sessions.filter(s => s.date === day);
+    const daySess = daySessions(day);
     const chosen = daySess.filter(s => mySchedule.has(s.id)).sort((a, b) => a.startMin - b.startMin);
     const win = dayWindow(daySess);
     let cur = win.start;
@@ -552,8 +841,9 @@ function slotLabel(sl) { return sl.date + " " + hhmm(sl.startMin) + "-" + hhmm(s
 function gapBlock(day, aMin, bMin, daySess, openKeys) {
   const slotFit = s => (aiPicks && aiPicks.get(s.id) && aiPicks.get(s.id).slot) ? 1 : 0;
   const cands = daySess
-    .filter(s => !mySchedule.has(s.id) && s.startMin < bMin && s.endMin > aMin)
+    .filter(s => !mySchedule.has(s.id) && s.startMin < bMin && s.endMin > aMin && matchesFilters(s))
     .sort((x, y) =>
+      (prioOf(x) - prioOf(y)) ||
       (slotFit(y) - slotFit(x)) ||
       (aiScore(y) - aiScore(x)) ||
       (x.startMin - y.startMin) ||
@@ -598,24 +888,28 @@ function renderSchedule() {
   }
   schedDates.sort();
 
-  let totalCount = 0, bookedMin = 0, gapCount = 0;
+  let totalCount = 0, bookedMin = 0, gapCount = 0, shownCount = 0;
 
   for (const day of schedDates) {
-    const daySess = sessions.filter(s => s.date === day);
+    const daySess = daySessions(day);
     const chosen = daySess.filter(s => mySchedule.has(s.id)).sort((a, b) => a.startMin - b.startMin);
     const isConf = CONF_DAYS.includes(day);
 
+    // the timeline is always built from the full schedule; filters only decide what is drawn
+    const showDay = !el.day.value || el.day.value === day;
+    const shown = chosen.filter(matchesFilters);
     const sec = document.createElement("section");
     sec.className = "daygroup";
     sec.innerHTML = "<h2>" + esc(weekday(day)) + " · " + esc(day) +
-      " — " + chosen.length + " scheduled</h2>";
-    el.list.appendChild(sec);
+      " — " + (shown.length === chosen.length ? "" : shown.length + " of ") + chosen.length + " scheduled</h2>";
+    if (showDay) el.list.appendChild(sec);
 
     totalCount += chosen.length;
+    shownCount += shown.length;
     chosen.forEach(s => { bookedMin += Math.max(0, s.endMin - s.startMin); });
 
     if (!isConf) {
-      chosen.forEach(s => sec.appendChild(sessionCard(s, { showDate: false })));
+      shown.forEach(s => sec.appendChild(sessionCard(s, { showDate: false })));
       continue;
     }
 
@@ -623,17 +917,21 @@ function renderSchedule() {
     let cursor = win.start;
     for (const s of chosen) {
       if (s.startMin > cursor) {
-        sec.appendChild(gapBlock(day, cursor, s.startMin, daySess, openKeys));
+        if (showDay) sec.appendChild(gapBlock(day, cursor, s.startMin, daySess, openKeys));
         gapCount++;
       }
-      sec.appendChild(sessionCard(s, { showDate: false }));
+      if (matchesFilters(s)) sec.appendChild(sessionCard(s, { showDate: false }));
       cursor = Math.max(cursor, s.endMin);
     }
     if (cursor < win.end) {
-      sec.appendChild(gapBlock(day, cursor, win.end, daySess, openKeys));
+      if (showDay) sec.appendChild(gapBlock(day, cursor, win.end, daySess, openKeys));
       gapCount++;
     }
   }
+
+  el.count.textContent = filtersActive()
+    ? shownCount + " of " + totalCount + " scheduled shown"
+    : "";
 
   if (!totalCount) {
     const box = document.createElement("div");
@@ -646,7 +944,7 @@ function renderSchedule() {
   }
 
   el.schedSummary.textContent =
-    totalCount + " session" + (totalCount === 1 ? "" : "s") + " scheduled · " +
+    totalCount + " scheduled" + (meetings.length ? " (incl. " + meetings.length + " meeting" + (meetings.length === 1 ? "" : "s") + ")" : "") + " · " +
     dur(bookedMin) + " booked · " +
     gapCount + " open gap" + (gapCount === 1 ? "" : "s") + " across the two days";
 }
@@ -673,10 +971,32 @@ function renderAll() {
   updateViewButtons();
   updateSchedNote();
   const sched = viewMode === "schedule";
-  el.controls.hidden = sched;
-  el.schedSummary.hidden = !sched;
+  el.schedSummaryRow.hidden = !sched;
+  el.printSchedBtn.disabled = !mySchedule.size;
+  el.meetingPanel.hidden = !sched;
   if (sched) renderSchedule();
   else renderList();
+}
+
+/* switch to the schedule view with filters cleared, print, then restore whatever was active before */
+function printSchedule() {
+  if (!mySchedule.size) return;
+  const prevView = viewMode;
+  const hadFilters = filtersActive();
+  const prevFilters = { q: el.q.value, day: el.day.value, loc: el.loc.value, type: el.type.value, prio: el.prio.value };
+  if (hadFilters) { el.q.value = ""; el.day.value = ""; el.loc.value = ""; el.type.value = ""; el.prio.value = ""; }
+  setView("schedule");
+
+  const restore = () => {
+    window.removeEventListener("afterprint", restore);
+    if (hadFilters) {
+      el.q.value = prevFilters.q; el.day.value = prevFilters.day; el.loc.value = prevFilters.loc;
+      el.type.value = prevFilters.type; el.prio.value = prevFilters.prio;
+    }
+    if (prevView !== viewMode) setView(prevView); else renderAll();
+  };
+  window.addEventListener("afterprint", restore);
+  setTimeout(() => window.print(), 50);
 }
 
 function setView(v) {
@@ -748,7 +1068,7 @@ async function runAI() {
   if (mySchedule.size) {
     const chosen = [...mySchedule].map(id => byId.get(id))
       .sort((a, b) => a.date.localeCompare(b.date) || a.startMin - b.startMin)
-      .map(s => "- " + s.date + " " + s.startTime + "-" + s.endTime + "  " + s.title +
+      .map(s => "- " + s.date + " " + s.startTime + "-" + s.endTime + "  " + (s.isMeeting ? "[meeting] " : "") + s.title +
         (s.location ? "  [" + s.location + "]" : ""));
     const slots = freeSlots().filter(sl => sl.endMin - sl.startMin >= 20)
       .map(sl => "- " + slotLabel(sl) + "  (" + dur(sl.endMin - sl.startMin) + ")");
@@ -896,7 +1216,7 @@ fetch(DATA_URL)
     opts(el.loc, [...new Set(sessions.map(s => s.location).filter(Boolean))].sort());
     opts(el.type, [...new Set(sessions.map(s => s.type).filter(Boolean))].sort());
 
-    for (const c of [el.q, el.day, el.loc, el.type]) c.addEventListener("input", renderAll);
+    for (const c of [el.q, el.day, el.loc, el.type, el.prio, el.sort]) c.addEventListener("input", renderAll);
     el.views.forEach(b => b.addEventListener("click", () => setView(b.dataset.view)));
     el.aiRun.addEventListener("click", runAI);
     el.aiClear.addEventListener("click", clearAI);
@@ -908,7 +1228,12 @@ fetch(DATA_URL)
       if (savedWs) el.aiWorkspace.value = savedWs;
     } catch {}
 
+    loadMeetings();
     loadSchedule();
+    loadPriorities();
+    el.mDate.value = CONF_DAYS[0];
+    el.meetingForm.addEventListener("submit", addMeeting);
+    el.printSchedBtn.addEventListener("click", printSchedule);
     renderAll();
   })
   .catch(e => {

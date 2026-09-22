@@ -1,6 +1,7 @@
 # scraper intermediates
 scraper/all_plannings.json
 scraper/speakers.json
+scraper/dmexco-2026-conference-agenda.json
 
 # editor / OS cruft
 *Zone.Identifier

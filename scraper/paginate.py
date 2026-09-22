@@ -1,7 +1,8 @@
 import json,urllib.request,time
 URL="https://api.swapcard.com/graphql"
 VIEW="RXZlbnRWaWV3XzEyNjEzMjA="
-Q="""query V($v:ID!,$c:Core_CursorPaginationInput){
+EID="RXZlbnRfNDM1MDQyOA=="
+Q="""query V($v:ID!,$c:Core_CursorPaginationInput,$eid:ID!){
  Core_eventPlanningListView(viewId:$v){ plannings(cursor:$c){
   pageInfo{ hasNextPage endCursor }
   nodes{ id title beginsAt(format:ISO8601) endsAt(format:ISO8601) place format type
@@ -9,6 +10,9 @@ Q="""query V($v:ID!,$c:Core_CursorPaginationInput){
    categories{ name }
    firstSpeakers(size:20){ firstName lastName organization jobTitle }
    exhibitorList{ name }
+   withEvent(eventId:$eid){
+     attendeeProfiles(cursor:{first:1}){ totalCount }
+   }
    fields{
      __typename
      ... on Core_TextField{ definition{ name } value{ text } }
@@ -23,7 +27,7 @@ Q="""query V($v:ID!,$c:Core_CursorPaginationInput){
 def call(after):
     c={"first":40}
     if after: c["after"]=after
-    body=json.dumps({"query":Q,"variables":{"v":VIEW,"c":c}}).encode()
+    body=json.dumps({"query":Q,"variables":{"v":VIEW,"c":c,"eid":EID}}).encode()
     req=urllib.request.Request(URL,body,{"content-type":"application/json"})
     return json.load(urllib.request.urlopen(req))
 allnodes=[]
